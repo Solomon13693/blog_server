@@ -1,0 +1,37 @@
+{
+  "name": "blog-backend",
+  "version": "1.0.0",
+  "description": "blog backend for final year project - Ogitech computer science",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "backend",
+    "ogitech",
+    "computer",
+    "science"
+  ],
+  "author": "Adeoye Solomon",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "colors": "^1.4.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-async-handler": "^1.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "moment": "^2.30.1",
+    "mongoose": "^8.5.1",
+    "multer": "^1.4.5-lts.1",
+    "node-cron": "^3.0.3",
+    "slugify": "^1.6.6",
+    "validator": "^13.12.0"
+  },
+  "devDependencies": {
+    "morgan": "^1.10.0",
+    "nodemon": "^3.1.4"
+  }
+}
