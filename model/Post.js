@@ -70,7 +70,7 @@ postSchema.pre('save', function (next) {
 });
 
 postSchema.pre(/^find/, function (next) {
-    this.populate({ path: 'author', select: 'name email' }).populate({
+    this.populate({ path: 'author', select: 'name email image' }).populate({
         path: 'category',
         select: 'name',
     });

@@ -44,98 +44,104 @@ exports.createPost = asyncHandler(async (req, res, next) => {
 // @route   POST /api/v1/post
 // @access  Public
 exports.getPosts = asyncHandler(async (req, res) => {
-
     let query;
 
-    const queryObj = { ...req.query }
+    const queryObj = { ...req.query };
+    const removeField = ['select', 'sort', 'page', 'limit', 'search'];
+    removeField.forEach(param => delete queryObj[param]);
 
-    const removeField = ['select', 'sort', 'page', 'limit', 'search']
-    removeField.forEach((params) => delete queryObj[params])
+    // Initialize the query
+    query = Post.find(queryObj);
 
-    // get data
-    query = Post.find(queryObj)
+    const { select, sort, page, limit, search } = req.query;
 
-    const { select, sort, page, limit, search } = req.query
-
+    // Handle field selection
     if (select) {
-        const fields = select.split(',').join(' ')
-        query = query.select(fields)
+        const fields = select.split(',').join(' ');
+        query = query.select(fields);
     }
 
+    // Handle sorting
     if (sort) {
-        const fields = sort.split(',').join(' ')
-        query = query.sort(fields)
+        const fields = sort.split(',').join(' ');
+        query = query.sort(fields);
     } else {
-        query = query.sort('-createdAt')
+        query = query.sort('-createdAt');
     }
 
+    // Handle search functionality
     if (search) {
-
-        const searchTerm = req.query.search; // Search term provided by the user
-        const searchTermRegex = new RegExp(searchTerm, 'i'); // Dynamic regular expression pattern
+        const searchTerm = search.toLowerCase(); // Convert search term to lowercase
+        const searchTermRegex = new RegExp(searchTerm, 'i'); // Case-insensitive regex
 
         query.or([
             { title: searchTermRegex },
             { content: searchTermRegex },
-            { tags: searchTermRegex },
+            { tags: searchTermRegex }
         ]);
-
     }
 
+    // Handle author filter
     if (queryObj.author) {
-        const user = await User.findOne({ name: queryObj.author })
-        query.where('author').equals(user?._id)
+        const author = queryObj.author.toLowerCase();
+        const user = await User.findOne({ name: new RegExp(author, 'i') }); // Case-insensitive regex
+        if (user) {
+            query = query.where('author').equals(user._id);
+        }
     }
 
+    // Handle category filter
     if (queryObj.category) {
-        const category = await Category.findOne({ name: queryObj.category })
-        query.where('category').equals(category?._id)
+        const category = queryObj.category.toLowerCase();
+        const categoryDoc = await Category.findOne({ name: new RegExp(category, 'i') }); // Case-insensitive regex
+        if (categoryDoc) {
+            query = query.where('category').equals(categoryDoc._id);
+        }
     }
 
+    // Handle tags filter
     if (queryObj.tags) {
-        const fields = queryObj.tags.split(',')
-        query = query.where('tags').in(fields)
+        const fields = queryObj.tags.split(',');
+        query = query.where('tags').in(fields);
     }
 
-    // Pagination
-    const pages = parseInt(page, 10) || 1
-    const limits = parseInt(limit, 10) || 10
-    const startIndex = (pages - 1) * limits
-    const endIndex = pages * limits
-    const total = await Post.countDocuments()
+    // Handle pagination
+    const pages = parseInt(page, 10) || 1;
+    const limits = parseInt(limit, 10) || 10;
+    const startIndex = (pages - 1) * limits;
+    const endIndex = pages * limits;
+    const total = await Post.countDocuments();
 
-    query = query.skip(startIndex).limit(limits)
+    query = query.skip(startIndex).limit(limits);
 
-    // Execute
-    const posts = await query
+    // Execute the query
+    const posts = await query;
 
-    // Pagination Result
-    let pagination = {}
-
+    // Prepare pagination result
+    let pagination = {};
     if (endIndex < total) {
         pagination.next = {
             page: pages + 1,
-            limits
-        }
+            limit: limits
+        };
     }
-
     if (startIndex > 0) {
         pagination.prev = {
             page: pages - 1,
-            limits
-        }
+            limit: limits
+        };
     }
 
-    successResponse(res, 200, 'Post retrieved successfully !', { posts, pagination });
-
+    // Send the response
+    successResponse(res, 200, 'Posts retrieved successfully!', { posts, pagination });
 });
 
 exports.getRecentPosts = asyncHandler(async (req, res) => {
 
-    const limit = parseInt(req.query.limit, 10) || 10;
+    const limit = parseInt(req.query.limit, 5) || 5;
 
     const recentPosts = await Post.find()
-        .sort('-createdAt') 
+        .sort('-createdAt')
         .limit(limit)
 
     successResponse(res, 200, 'Recent posts retrieved successfully', recentPosts)
@@ -145,7 +151,7 @@ exports.getRecentPosts = asyncHandler(async (req, res) => {
 // @desc    Get Post by Id
 // @route   POST /api/v1/post/:id
 // @access  Public
-exports.getPostById = asyncHandler(async (req, res, next) => {
+exports.getPostBySlug = asyncHandler(async (req, res, next) => {
 
     const post = await Post.findOne({ slug: req.params.slug })
 

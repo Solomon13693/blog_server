@@ -1,5 +1,5 @@
 const express = require('express');
-const { getPosts, createPost, getPostById, updatePost, deletePost, getRecentPosts } = require('../controller/PostController')
+const { getPosts, createPost, getPostBySlug, updatePost, deletePost, getRecentPosts } = require('../controller/PostController')
 const { Protected, authorize } = require('../middleware/auth')
 const router = express.Router()
 const multer = require('../config/multer')
@@ -21,7 +21,7 @@ router
 
 router
     .route('/:slug')
-    .get(getPostById)
+    .get(getPostBySlug)
 
 router
     .route('/:id')
