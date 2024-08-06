@@ -159,7 +159,7 @@ exports.getPostBySlug = asyncHandler(async (req, res, next) => {
         return next(new ErrorResponse(`Post with ${req.params.slug} not found`, 404))
     }
 
-    successResponse(res, 200, 'Post retrieved successfully !', { post });
+    successResponse(res, 200, 'Post retrieved  !', { post });
 
 })
 
